@@ -23,8 +23,9 @@ def check_url(url):
 
 def is_local_ip(url):
     
-    if url.lower().startswith("http://127.0.0.1") or url.lower().startswith("http://localhost"):
+    if "http://127.0.0.1".lower() in url.lower() or "http://localhost".lower() in url.lower():
         return True
+
 
     local_ip_regex = r"^http://(192\.168|10|172\.16|172\.17|172\.18|172\.19|172\.20|172\.21|172\.22|172\.23|172\.24|172\.25|172\.26|172\.27|172\.28|172\.29|172\.30|172\.31)\.\d{1,3}\.\d{1,3}$"
     if re.match(local_ip_regex, url):
@@ -67,11 +68,8 @@ def is_resolved_local_ip(url):
         if not domain:
             return True 
         
-        
-      
         ip_address = socket.gethostbyname(domain)
         
-     
         if ip_address.startswith('127.') or ip_address.startswith('10.') or ip_address.startswith('192.168.') or ip_address.startswith('172.'):
             return True
         return False
@@ -79,7 +77,6 @@ def is_resolved_local_ip(url):
         return True  
 
 
-# Ana sayfa
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -90,24 +87,36 @@ def index():
 def capture():
     url = request.form.get('url')
 
-    if "file://" in url:
-         return render_template('index.html', error_message="File URL'leri desteklenmiyor.")
+    if "file://" in url or "file:\\" in url:
+        user_ip = request.remote_addr
+        user_agent = request.user_agent
+        print(f"Potentially dangerous access attempt detected.")
+        print(f"User IP: {user_ip}")
+        print(f"User Agent: {user_agent}")
+        print(f"Attempted URL: {url}")
+        return render_template('index.html', error_message="File URLs are not supported.")
 
+    if is_local_ip(url) or is_resolved_local_ip(url):
+        user_ip = request.remote_addr
+        user_agent = request.user_agent
+        print(f"Potentially dangerous access attempt detected.")
+        print(f"User IP: {user_ip}")
+        print(f"User Agent: {user_agent}")
+        print(f"Attempted URL: {url}")
+        return render_template('index.html', error_message="Access to local IP addresses is not allowed!")
+        
 
     if check_url(url):
-         return render_template('index.html', error_message="URL formatı hatalı. Lütfen geçerli bir URL giriniz.")
-    
-    if is_local_ip(url) or is_resolved_local_ip(url):
-         return render_template('index.html', error_message="Yerel IP adreslerine erişim izni yok!")
-    
+        return render_template('index.html', error_message="Invalid URL format. Please enter a valid URL.")
+        
     if has_malicious_extension(url):
-        return render_template('index.html', error_message="Zararlı dosya uzantısı tespit edildi! Erişim izni yok.")
+        return render_template('index.html', error_message="Malicious file extension detected! Access denied.")
 
 
     if url:
         screenshot_filename = capture_screenshot(url)
         return render_template('index.html', screenshot_filename=screenshot_filename)
-    return 'URL girilmedi!', 400
 
+    return 'No URL provided!', 400
 if __name__ == '__main__':
     app.run(debug=True)
