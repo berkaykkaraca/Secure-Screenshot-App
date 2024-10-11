@@ -60,23 +60,23 @@ def capture_screenshot(url):
 
 def is_resolved_local_ip(url):
     try:
-        # URL'den domain adını alıyoruz
+        
         parsed_url = urlparse(url)
         domain = parsed_url.hostname
         
         if not domain:
-            return True  # Geçerli bir domain yoksa güvenlik için engelle
+            return True 
         
         
-        # Domaini çözümleyerek IP adresini alıyoruz
+      
         ip_address = socket.gethostbyname(domain)
         
-        # Yerel IP olup olmadığını kontrol ediyoruz
+     
         if ip_address.startswith('127.') or ip_address.startswith('10.') or ip_address.startswith('192.168.') or ip_address.startswith('172.'):
             return True
         return False
     except Exception:
-        return True  # Herhangi bir hata durumunda güvenlik önlemi olarak erişimi engelliyoruz
+        return True  
 
 
 # Ana sayfa
@@ -86,7 +86,7 @@ def index():
 
 
 @app.route('/capture', methods=['POST'])
-#@limiter.limit("5 per minute") 
+@limiter.limit("5 per minute") 
 def capture():
     url = request.form.get('url')
 
