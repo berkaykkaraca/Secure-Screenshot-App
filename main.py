@@ -23,7 +23,7 @@ def check_url(url):
 
 def is_local_ip(url):
     
-    if "http://127.0.0.1".lower() in url.lower() or "http://localhost".lower() in url.lower():
+    if "http://127.0.0.1" in url.lower() or "http://localhost" in url.lower():
         return True
 
 
@@ -87,7 +87,7 @@ def index():
 def capture():
     url = request.form.get('url')
 
-    if "file://" in url or "file:\\" in url:
+    if "file://" in url or "file:\\" in url.lower():
         user_ip = request.remote_addr
         user_agent = request.user_agent
         print(f"Potentially dangerous access attempt detected.")
